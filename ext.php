@@ -15,27 +15,48 @@ namespace tojag\nqlp;
 */
 class ext extends \phpbb\extension\base
 {
-	/** @var string Require phpBB 3.3.0 */
-	const PHPBB_MIN_VERSION = '3.3';
+	/** @var string Require phpBB 3.3.19 */
+	const PHPBB_MIN_VERSION = '3.3.19';
 	/**
-	 * Enable extension if phpBB version requirement is met
+	 * Check whether the extension can be enabled.
+	 * The current phpBB and PHP version should meet or
+	 * exceed the minimum version required by this extension:
 	 *
-	 * @return bool
+	 * @return bool|array
 	 * @access public
 	 */
 	public function is_enableable()
 	{
-		$config = $this->container->get('config');
+		$enableable = $this->check_phpbb_version() && $this->check_php_version();
 
-		$enableable = (phpbb_version_compare($config['version'], self::PHPBB_MIN_VERSION, '>='));
 		if (!$enableable)
 		{
 			$language = $this->container->get('language');
-			$language->add_lang('common', 'tojag/nqlp');
+			$language->add_lang('nqlp_install', 'tojag/nqlp');
 
-			trigger_error($language->lang('EXTENSION_REQUIREMENTS', self::PHPBB_MIN_VERSION), E_USER_WARNING);
+			return $language->lang('NQLP_NOT_ENABLEABLE');
 		}
 
 		return $enableable;
+	}
+
+	/**
+	 * Require phpBB 3.3.19 due to several security fixes in the phpBB software.
+	 *
+	 * @return bool
+	 */
+	protected function check_phpbb_version()
+	{
+		return phpbb_version_compare(PHPBB_VERSION, '3.3.19', '>=');
+	}
+
+	/**
+	 * Requires PHP 8.3.36 due to security fixes.
+	 *
+	 * @return bool
+	 */
+	protected function check_php_version()
+	{
+		return PHP_VERSION_ID >= 80336;
 	}
 }
